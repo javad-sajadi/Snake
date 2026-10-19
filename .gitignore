@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+savefile.txt
+.vscode/
+.idea/
+.DS_Store
