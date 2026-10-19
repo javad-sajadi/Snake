@@ -248,16 +248,22 @@ class SnakeWindow:
 
     def on_key_pressed(self, e):
         k = e.keysym
-        if k in ("Left", "a", "A") and self.key_move != "R":
-            self.key_move = "L"
-        elif k in ("Right", "d", "D") and self.key_move != "L":
-            self.key_move = "R"
-        elif k in ("Up", "w", "W") and self.key_move != "D":
-            self.key_move = "U"
-        elif k in ("Down", "s", "S") and self.key_move != "U":
-            self.key_move = "D"
+        opposite = {"L": "R", "R": "L", "U": "D", "D": "U"}
+        new_dir = None
+        if k in ("Left", "a", "A"):
+            new_dir = "L"
+        elif k in ("Right", "d", "D"):
+            new_dir = "R"
+        elif k in ("Up", "w", "W"):
+            new_dir = "U"
+        elif k in ("Down", "s", "S"):
+            new_dir = "D"
         elif k in ("p", "P", "space"):
             self.toggle_pause()
+            return
+
+        if new_dir and new_dir != opposite.get(self.key_move):
+            self.next_move = new_dir
 
     def toggle_pause(self):
         self.pause = not self.pause
@@ -269,6 +275,8 @@ class SnakeWindow:
     def run_loop(self):
         if self.pause:
             return
+        if hasattr(self, "next_move"):
+            self.key_move = self.next_move
         if not self.board.Game_Over():
             self.board.Snake_move(self.key_move)
             self.render()
@@ -357,14 +365,22 @@ class SnakeWindow:
         self.run_loop()
 
     def render_game_over(self):
-        self.canvas.create_rectangle(Config.BOARD_WIDTH / 2 - 150, Config.BOARD_HEIGHT / 2 - 60,
-                                     Config.BOARD_WIDTH / 2 + 150, Config.BOARD_HEIGHT / 2 + 60,
+        self.canvas.create_rectangle(Config.BOARD_WIDTH / 2 - 150, Config.BOARD_HEIGHT / 2 - 80,
+                                     Config.BOARD_WIDTH / 2 + 150, Config.BOARD_HEIGHT / 2 + 80,
                                      fill="#c0392b", outline="white", width=2)
-        self.canvas.create_text(Config.BOARD_WIDTH / 2, Config.BOARD_HEIGHT / 2 - 20,
+        self.canvas.create_text(Config.BOARD_WIDTH / 2, Config.BOARD_HEIGHT / 2 - 40,
                                 text="GAME OVER", font=("Helvetica", 18, "bold"), fill="white")
-        self.canvas.create_text(Config.BOARD_WIDTH / 2, Config.BOARD_HEIGHT / 2 + 15,
+        self.canvas.create_text(Config.BOARD_WIDTH / 2, Config.BOARD_HEIGHT / 2 - 10,
                                 text=f"Final Score: {self.board.Score()}  (Level {self.C})",
                                 font=("Helvetica", 12), fill="white")
+        self.restart_btn = Button(self.root, text="Play Again", bg="#2ecc71", fg="black",
+                                  font=("Helvetica", 10, "bold"), padx=12, pady=4, command=self.restart_game)
+        self.restart_btn.place(relx=0.5, rely=0.58, anchor=CENTER)
+
+    def restart_game(self):
+        if hasattr(self, "restart_btn"):
+            self.restart_btn.destroy()
+        self.start_game()
 
 
 if __name__ == "__main__":
